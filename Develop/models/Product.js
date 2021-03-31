@@ -10,6 +10,21 @@ class Product extends Model {}
 Product.init(
   {
     // define columns
+    product_name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    price: {
+      type: DataTypes.DECIMAL,
+      allowNull: false,
+      isDecimal: true
+    },
+    stock: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      default: 10,
+      isNumeric: true
+    },
   },
   {
     sequelize,
@@ -19,5 +34,10 @@ Product.init(
     modelName: 'product',
   }
 );
-
+Product.associate = function(models) {
+  Product.belongToMany(models.Category, {
+    through: "Category_Items",
+    foreignkey: "Category_ID"
+  })
+}
 module.exports = Product;
