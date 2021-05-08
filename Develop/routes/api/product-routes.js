@@ -1,12 +1,22 @@
 const router = require('express').Router();
-const { Product, Category, Tag, ProductTag } = require('../../models');
+const { Product, Category, Tag, Product_Tag } = require('../../models');
 
 // The `/api/products` endpoint
 
 // get all products
 router.get('/', async (req, res) => {
+  console.log("route hit");
   try {
-    const productData = await Product.finalAll();
+    const productData = await Product.findAll({
+      include: [
+        Category,
+        {
+          model: Tag,
+          through: Product_Tag
+        }
+      ]
+    });
+    console.log(productData);
     res.status(200).json(productData);
   } catch (err) {
     res.status(500).json(err);
@@ -53,7 +63,7 @@ router.post('/', (req, res) => {
             tag_id,
           };
         });
-        return ProductTag.bulkCreate(productTagIdArr);
+        return Product_Tag.bulkCreate(productTagIdArr);
       }
       // if no product tags, just respond
       res.status(200).json(product);
@@ -75,7 +85,7 @@ router.put('/:id', (req, res) => {
   })
     .then((product) => {
       // find all associated tags from ProductTag
-      return ProductTag.findAll({ where: { product_id: req.params.id } });
+      return Product_Tag.findAll({ where: { product_id: req.params.id } });
     })
     .then((productTags) => {
       // get list of current tag_ids
@@ -96,8 +106,8 @@ router.put('/:id', (req, res) => {
 
       // run both actions
       return Promise.all([
-        ProductTag.destroy({ where: { id: productTagsToRemove } }),
-        ProductTag.bulkCreate(newProductTags),
+        Product_Tag.destroy({ where: { id: productTagsToRemove } }),
+        Product_Tag.bulkCreate(newProductTags),
       ]);
     })
     .then((updatedProductTags) => res.json(updatedProductTags))
